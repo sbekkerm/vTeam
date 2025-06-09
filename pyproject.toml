@@ -1,0 +1,11 @@
+[project]
+name = "rhoai-ai-feature-sizing"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fire>=0.7.0",
+    "llama-stack-client>=0.2.10",
+    "requests>=2.32.3",
+]
