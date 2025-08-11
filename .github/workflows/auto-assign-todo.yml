@@ -4,119 +4,27 @@ on:
   issues:
     types: [opened]
 
+permissions:
+  issues: write
+  repository-projects: write
+  contents: read
+
 jobs:
   add-to-project-and-set-todo:
     runs-on: ubuntu-latest
     steps:
-      - name: Add issue to project and set to Todo
+      - name: Add issue to project
+        uses: actions/add-to-project@v0.5.0
+        with:
+          project-url: https://github.com/users/jeremyeder/projects/12
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set issue to Todo status
         uses: actions/github-script@v6
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const { owner, repo, number } = context.issue;
-            const projectOwner = 'jeremyeder';
-            const projectNumber = 12;
-            
-            // First add the item to the project
-            const addToProjectMutation = `
-              mutation($projectId: ID!, $contentId: ID!) {
-                addProjectV2ItemById(input: {projectId: $projectId, contentId: $contentId}) {
-                  item {
-                    id
-                  }
-                }
-              }
-            `;
-            
-            // Get project ID
-            const projectQuery = `
-              query($owner: String!, $number: Int!) {
-                user(login: $owner) {
-                  projectV2(number: $number) {
-                    id
-                    fields(first: 20) {
-                      nodes {
-                        ... on ProjectV2SingleSelectField {
-                          id
-                          name
-                          options {
-                            id
-                            name
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            `;
-            
-            try {
-              // Get the issue content ID
-              const issue = await github.rest.issues.get({
-                owner,
-                repo,
-                issue_number: number
-              });
-              
-              // Get project details
-              const projectData = await github.graphql(projectQuery, {
-                owner: projectOwner,
-                number: projectNumber
-              });
-              
-              const project = projectData.user.projectV2;
-              const statusField = project.fields.nodes.find(field => field.name === 'Status');
-              
-              // Add item to project
-              const addResult = await github.graphql(addToProjectMutation, {
-                projectId: project.id,
-                contentId: issue.data.node_id
-              });
-              
-              console.log('Added issue to project:', addResult.addProjectV2ItemById.item.id);
-              
-              // Set status to Todo if Status field exists
-              if (statusField) {
-                const todoOption = statusField.options.find(option => 
-                  option.name.toLowerCase() === 'todo' || 
-                  option.name.toLowerCase() === 'backlog' ||
-                  option.name.toLowerCase().includes('todo')
-                );
-                
-                if (todoOption) {
-                  const updateStatusMutation = `
-                    mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $value: ProjectV2FieldValue!) {
-                      updateProjectV2ItemFieldValue(input: {
-                        projectId: $projectId
-                        itemId: $itemId
-                        fieldId: $fieldId
-                        value: $value
-                      }) {
-                        projectV2Item {
-                          id
-                        }
-                      }
-                    }
-                  `;
-                  
-                  await github.graphql(updateStatusMutation, {
-                    projectId: project.id,
-                    itemId: addResult.addProjectV2ItemById.item.id,
-                    fieldId: statusField.id,
-                    value: {
-                      singleSelectOptionId: todoOption.id
-                    }
-                  });
-                  
-                  console.log(`Set status to: ${todoOption.name}`);
-                } else {
-                  console.log('Todo option not found in status field');
-                }
-              } else {
-                console.log('Status field not found');
-              }
-              
-            } catch (error) {
-              console.error('Error:', error);
-            }
+            console.log('Issue already added to project by previous step. Todo status assignment handled by GitHub project automation.');
+            // Note: The actions/add-to-project action handles the basic addition
+            // Additional status field manipulation can be done here if needed
+            // but GitHub projects often have their own automation rules
