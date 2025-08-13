@@ -53,7 +53,7 @@ This repository includes shared Claude Code configuration for team development s
 
 ### vTeam Shared-Configs
 
-The `vTeam/shared-configs/` directory provides:
+Automated team configuration management via Python package:
 
 - **🔄 Automatic enforcement** - Hooks ensure team standards on every Git operation
 - **⚙️ Developer flexibility** - Personal overrides via `.claude/settings.local.json`
@@ -62,7 +62,15 @@ The `vTeam/shared-configs/` directory provides:
 
 **Quick Setup:**
 ```bash
-cp vTeam/shared-configs/.claude/settings.json ~/.claude/settings.json
+pip install vteam-shared-configs
+vteam-config install
+```
+
+**Available Commands:**
+```bash
+vteam-config status      # Show current configuration
+vteam-config update      # Update to latest version
+vteam-config uninstall   # Remove configuration
 ```
 
 📚 **Full Documentation:** [vTeam/shared-configs/README.md](vTeam/shared-configs/README.md)
