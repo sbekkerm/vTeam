@@ -4,11 +4,11 @@ Comprehensive setup instructions for vTeam shared Claude Code configurations.
 
 ## Quick Setup (Recommended)
 
-Use the automated installation script:
+Use the vteam-config CLI tool:
 
 ```bash
-cd vTeam/shared-configs
-./install.sh
+pip install vteam-shared-configs
+vteam-config install
 ```
 
 This handles everything automatically including backups and verification.
@@ -114,15 +114,13 @@ vTeam/shared-configs/
 
 ### Update Configuration
 ```bash
-cd vTeam/shared-configs
-./update.sh
+vteam-config update
 ```
-Pulls latest changes and reinstalls configuration.
+Updates to latest team configuration.
 
 ### Uninstall
 ```bash
-cd vTeam/shared-configs
-./uninstall.sh
+vteam-config uninstall
 ```
 Removes configuration and restores backups.
 

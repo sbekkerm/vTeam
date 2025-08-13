@@ -8,7 +8,7 @@
           "tool": "Bash",
           "command": "git commit*"
         },
-        "command": "./vTeam/shared-configs/hooks/enforce-config.sh"
+        "command": "vteam-config install --force"
       },
       {
         "name": "enforce-vteam-config-push",
@@ -17,14 +17,14 @@
           "tool": "Bash", 
           "command": "git push*"
         },
-        "command": "./vTeam/shared-configs/hooks/enforce-config.sh"
+        "command": "vteam-config install --force"
       }
     ],
     "sessionStart": [
       {
         "name": "vteam-welcome",
         "description": "Display vTeam configuration status on session start",
-        "command": "./vTeam/shared-configs/hooks/status-check.sh"
+        "command": "vteam-config status"
       }
     ]
   },

@@ -73,4 +73,4 @@ vteam-config update      # Update to latest version
 vteam-config uninstall   # Remove configuration
 ```
 
-📚 **Full Documentation:** [vTeam/shared-configs/README.md](vTeam/shared-configs/README.md)
+📚 **Full Documentation:** [Package Documentation](https://pypi.org/project/vteam-shared-configs/)

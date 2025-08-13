@@ -36,25 +36,21 @@ flowchart TD
 ```mermaid
 sequenceDiagram
     participant Dev as Developer
-    participant Repo as vTeam Repository  
+    participant PyPI as PyPI Package Registry
     participant Claude as Claude Code
-    participant Hooks as Team Hooks
+    participant Config as vTeam Config
     
-    Dev->>Repo: git clone vTeam repository
-    Dev->>Claude: cp .claude/settings.json ~/.claude/
-    Note over Claude: Team hooks now active
+    Dev->>PyPI: pip install vteam-shared-configs
+    Dev->>Config: vteam-config install
+    Config->>Claude: Auto-create ~/.claude/CLAUDE.md symlink
+    Config->>Claude: Auto-create ~/.claude/project-templates symlink
+    Config->>Claude: Install team hooks configuration
+    Config->>Dev: ✅ Team configuration active
     
     Dev->>Claude: Start Claude session
-    Hooks->>Dev: Display configuration status
+    Config->>Dev: Display configuration status
     
-    Dev->>Repo: First git commit attempt
-    Hooks->>Claude: enforce-config.sh executes
-    Hooks->>Claude: Auto-create ~/.claude/CLAUDE.md symlink
-    Hooks->>Claude: Auto-create ~/.claude/project-templates symlink
-    Hooks->>Dev: ✅ Team configuration enforced
-    
-    Dev->>Repo: git commit proceeds
-    Note over Dev: All future work uses team standards
+    Note over Dev: All development uses team standards
 ```
 
 ## Overview
