@@ -46,3 +46,23 @@ RAT employs a microservices-based architecture with event-driven communication:
 - **Jira Integration**: Seamless workflow integration with existing processes  
 - **Data Source Connectivity**: Links to RFEs, repositories, architectural decision records
 - **Automated Workflow**: Event-driven processing with minimal manual intervention
+
+## Shared Configuration
+
+This repository includes shared Claude Code configuration for team development standards and workflows.
+
+### vTeam Shared-Configs
+
+The `vTeam/shared-configs/` directory provides:
+
+- **🔄 Automatic enforcement** - Hooks ensure team standards on every Git operation
+- **⚙️ Developer flexibility** - Personal overrides via `.claude/settings.local.json`
+- **📊 Visual documentation** - Mermaid workflow diagrams show configuration hierarchy
+- **🛠️ Project templates** - Python, JavaScript, Shell development templates
+
+**Quick Setup:**
+```bash
+cp vTeam/shared-configs/.claude/settings.json ~/.claude/settings.json
+```
+
+📚 **Full Documentation:** [vTeam/shared-configs/README.md](vTeam/shared-configs/README.md)
