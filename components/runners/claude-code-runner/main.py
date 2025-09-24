@@ -11,7 +11,7 @@ from typing import Dict, Any, List
 
 from claude_code_sdk.types import StreamEvent, ResultMessage
 import requests
-from anthropic import Anthropic
+from anthropic import Anthropic, AnthropicVertex
 
 from auth_handler import AuthHandler, BackendClient
 from git_integration import GitIntegration
@@ -31,6 +31,9 @@ class SimpleClaudeRunner:
         self.api_key = os.getenv("ANTHROPIC_API_KEY", "")
 
         # Optional inputs
+        self.anthropic_vertex_base_url = os.getenv("ANTHROPIC_VERTEX_BASE_URL", None)
+        self.anthropic_vertex_project_id = os.getenv("ANTHROPIC_VERTEX_PROJECT_ID", None)
+        self.anthropic_vertex_region = os.getenv("CLOUD_ML_REGION", None)
         self.git_user_name = os.getenv("GIT_USER_NAME", "").strip()
         self.git_user_email = os.getenv("GIT_USER_EMAIL", "").strip()
         self.backend_api_url = os.getenv("BACKEND_API_URL", f"http://backend-service:8080/api").rstrip("/")
@@ -41,7 +44,7 @@ class SimpleClaudeRunner:
 
         # Git integration (multi-repo via GIT_REPOSITORIES)
         self.git = GitIntegration()
-        
+
         # Derived
         self.workdir = Path("/tmp/workdir")
         self.artifacts_dir = self.workdir / "artifacts"
@@ -81,7 +84,15 @@ class SimpleClaudeRunner:
                 return self._fallback_display_name(prompt)
 
             model = os.getenv("CLAUDE_TITLE_MODEL", "claude-3-haiku-20240307")
-            client = Anthropic(api_key=api_key)
+            if self.anthropic_vertex_base_url:
+                client = AnthropicVertex (
+                    project_id=self.anthropic_vertex_project_id,
+                    region=self.anthropic_vertex_region,
+                    base_url=self.anthropic_vertex_base_url,
+                    access_token=api_key
+                )
+            else:
+                client = Anthropic(api_key=api_key)
             system_prompt = (
                 "You generate concise, human-friendly session titles. "
                 "Return a short title (max 8 words), no punctuation at the end, "
@@ -213,15 +224,15 @@ class SimpleClaudeRunner:
         if not self.workspace_store_path:
             logger.debug("No workspace store path configured, skipping sync from PVC")
             return
-        
+
         logger.info(f"Starting workspace sync from PVC: {self.workspace_store_path} -> {self.workdir}")
-        
+
         def pull_dir(pvc_path: str, dst: Path) -> None:
             logger.debug(f"Pulling directory: {pvc_path} -> {dst}")
             dst.mkdir(parents=True, exist_ok=True)
             items = self.content_list(pvc_path)
             logger.debug(f"Found {len(items)} items in {pvc_path}")
-            
+
             for it in items:
                 p = it.get("path", "")
                 name = Path(p).name
@@ -238,7 +249,7 @@ class SimpleClaudeRunner:
                         logger.debug(f"Successfully pulled file: {p} ({len(data)} bytes)")
                     except Exception as e:
                         logger.warning(f"Failed to pull file {p} -> {target}: {e}")
-        
+
         pull_dir(self.workspace_store_path, self.workdir)
         logger.info("Completed workspace sync from PVC")
 
@@ -418,7 +429,7 @@ class SimpleClaudeRunner:
                             except Exception:
                                 pass
                             return
-                       
+
                         # Mirror user message into outbox
                         self.messages.append({
                             "type": "user_message",
@@ -473,7 +484,7 @@ class SimpleClaudeRunner:
                                     **asdict(message),
                                 }
                                 self.messages.append(payload)
-                        
+
                         # Ensure any recent local changes are visible in UI before next run (deltas only)
                         try:
                             self._push_workspace_deltas()
@@ -493,7 +504,7 @@ class SimpleClaudeRunner:
                         pass
 
                 await __import__("asyncio").sleep(float(os.getenv("INBOX_POLL_INTERVAL_SEC", "0.5")))
-       
+
 
     # ---------------- Status ----------------
     def _update_status(self, phase: str, message: str | None = None, completed: bool = False, result_msg: ResultMessage | None = None) -> None:
@@ -509,7 +520,7 @@ class SimpleClaudeRunner:
             payload["session_id"] = result_msg.session_id
             payload["total_cost_usd"] = result_msg.total_cost_usd
             payload["usage"] = result_msg.usage
-      
+
         if completed:
             payload["completionTime"] = datetime.now(timezone.utc).isoformat()
         try:
@@ -633,14 +644,14 @@ class SimpleClaudeRunner:
                             self.messages.append(payload)
                             if isinstance(message, ResultMessage):
                                 result_message = message
-                    
+
                     # push workspace and flush messages
                     try:
                         self._push_workspace_deltas()
                     except Exception:
                         logger.warning("Failed to push workspace deltas")
                     self._flush_messages()
-                    
+
             except GeneratorExit:
                 logger.debug("Stream generator closed (GeneratorExit)")
             except Exception as e:  # noqa: BLE001
@@ -652,8 +663,8 @@ class SimpleClaudeRunner:
                         await aclose()
                     except Exception as e:  # noqa: BLE001
                         logger.debug(f"Stream aclose raised: {e}")
-                        
-                    
+
+
 
 
         try:
@@ -734,7 +745,7 @@ class SimpleClaudeRunner:
             # 3) Headless one-shot
             self._update_status("Running", message="Claude is running")
             result_msg = self._run_llm_streaming(self.prompt)
-            
+
 
             # 4) Push entire workspace back to PVC
             self._update_status("Running", message="Pushing workspace to PVC")
@@ -784,4 +795,4 @@ def main() -> None:
 if __name__ == "__main__":
     main()
 
- 
+
